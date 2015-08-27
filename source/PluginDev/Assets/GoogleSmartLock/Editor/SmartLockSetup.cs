@@ -53,7 +53,12 @@ namespace Google.SmartLock.Editor
                     return false;
             }
 
-            return SetupUtils.CopySupportLibs();
+            if (SetupUtils.CopySupportLibs())
+            {
+                AssetDatabase.Refresh();
+                return true;
+            }
+            return false;
         }
     }
 }

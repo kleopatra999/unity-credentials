@@ -26,7 +26,7 @@ namespace Credentials
     {
 
         // initialize the current credential to be empty.
-        private ICredential currrentCredential = new Credential("", "", "", "", "");
+        private ICredential currentCredential = new Credential("", "", "", "", "");
         private string msg = "";
         private Texture2D profilePic;
         private WWW www;
@@ -45,7 +45,7 @@ namespace Credentials
             GUILayout.BeginVertical(GUILayout.Width(width), GUILayout.Height(Screen.height));
 
             GUILayout.Label("SmartLock Credentials", GUILayout.Height(rowHeight));
-            GUILayout.Label(currrentCredential != null ? currrentCredential.Name : "");
+            GUILayout.Label(currentCredential != null ? currentCredential.Name : "");
 
             // Profile picture
             GUILayout.BeginHorizontal();
@@ -57,14 +57,14 @@ namespace Credentials
             // Email address
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            GUILayout.Label(currrentCredential != null ? currrentCredential.ID : "");
+            GUILayout.Label(currentCredential != null ? currentCredential.ID : "");
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             // Edit the email (id) of the credential.
             GUILayout.BeginHorizontal();
             GUILayout.Label("ID (Email):", GUILayout.Width(Screen.width / 3f));
-            currrentCredential.ID = GUILayout.TextField(currrentCredential.ID,
+            currentCredential.ID = GUILayout.TextField(currentCredential.ID,
                 GUILayout.ExpandWidth(true),
                 GUILayout.Height(rowHeight * .25f));
             GUILayout.EndHorizontal();
@@ -72,8 +72,8 @@ namespace Credentials
             // Edit the password.
             GUILayout.BeginHorizontal();
             GUILayout.Label("Password:", GUILayout.Width(Screen.width / 3f));
-            currrentCredential.Password = GUILayout.PasswordField(
-                currrentCredential.Password != null ? currrentCredential.Password : "", "*"[0], 25,
+            currentCredential.Password = GUILayout.PasswordField(
+                currentCredential.Password != null ? currentCredential.Password : "", "*"[0], 25,
                 GUILayout.ExpandWidth(true),
                 GUILayout.Height(rowHeight * .25f));
             GUILayout.EndHorizontal();
@@ -97,7 +97,7 @@ namespace Credentials
                         // just display them.
                         if (credential != null)
                         {
-                            currrentCredential = credential;
+                            currentCredential = credential;
                         }
                     });
             }
@@ -106,7 +106,12 @@ namespace Credentials
             {
                 // A real app would probably call save after the authentication
                 // to the other site.  Here is just a button for the demo.
-                SmartLockCredentials.Instance.Save(currrentCredential,
+                //
+                // Note: you can only save the accountType or the password.
+                if (!string.IsNullOrEmpty(currentCredential.Password)) {
+                     currentCredential.AccountType = null;
+                }
+                SmartLockCredentials.Instance.Save(currentCredential,
                     (status, credential) =>
                     {
                         msg = "Got Status: " + status;
@@ -117,12 +122,12 @@ namespace Credentials
             if (GUILayout.Button("Delete"))
             {
                 // Nice to allow the user to delete or "forget me"
-                SmartLockCredentials.Instance.Delete(currrentCredential,
+                SmartLockCredentials.Instance.Delete(currentCredential,
                     (status, credential) =>
                     {
                         msg = "Got Status: " + status;
                         Debug.Log("Got Status: " + status + ": " + credential);
-                        currrentCredential = new Credential("", "", "", "", "");
+                        currentCredential = new Credential("", "", "", "", "");
                     });
             }
             GUILayout.FlexibleSpace();
@@ -139,12 +144,12 @@ namespace Credentials
         {
             get
             {
-                if (currrentCredential != null && profilePic == null &&
-                    !string.IsNullOrEmpty(currrentCredential.ProfilePictureURL))
+                if (currentCredential != null && profilePic == null &&
+                    !string.IsNullOrEmpty(currentCredential.ProfilePictureURL))
                 {
-                    if (www == null || www.url != currrentCredential.ProfilePictureURL)
+                    if (www == null || www.url != currentCredential.ProfilePictureURL)
                     {
-                        www = new WWW(currrentCredential.ProfilePictureURL);
+                        www = new WWW(currentCredential.ProfilePictureURL);
                     }
                     if (profilePic == null && www.isDone)
                     {

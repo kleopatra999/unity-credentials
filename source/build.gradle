@@ -187,7 +187,7 @@ task export_package () {
     doLast {
         exec {
             executable "${unity_exe}"
-                args "-g.building", "-batchmode", "-projectPath", "${pluginProj}", "-logFile", "build/unity.log",  "-exportPackage", "Assets/GoogleSmartLock", "${exportPath}", "-quit"
+                args "-g.building", "-batchmode", "-projectPath", "${pluginProj}", "-logFile", "build/unity.log",  "-exportPackage", "Assets", "${exportPath}", "-quit"
         }
     }
 }
@@ -231,15 +231,37 @@ task build_java_support_lib(type: GradleBuild) {
 }
 build_java_support_lib.ext.remoteTaskPhase = 'prebuild'
 
-task support_jar(dependsOn:'build_java_support_lib') << {
-    copy {
-        from 'SupportLib/app/build/outputs/aar/app-release.aar'
-        into {'build/PluginSrc/Assets/GoogleSmartLock/Plugins/Android'}
-        rename ('app-release.aar','smartlocksupport.aar')
+
+// For Unity 4.6 compatibility, the jars need to be in Assets/Plugins,
+// so put it there.
+task support_jar(dependsOn:'build_java_support_lib') {
+    def destDir = file('build/PluginSrc/Assets/Plugins/Android/SmartLockSupport')
+    doFirst {
+        if (!destDir.exists()) {
+            destDir.mkdirs()
+        }
+    }
+        
+    doLast {
+        copy {
+            from (zipTree('SupportLib/app/build/outputs/aar/app-release.aar'))
+            {
+                include 'classes.jar'
+                include 'AndroidManifest.xml'
+                rename ('classes.jar','libs/smartlocksupport.jar')
+            }
+            into destDir
+        }
+    }
+    doLast {
+        copy {
+            from ('.') {
+                include 'project.properties'
+            }
+            into destDir
+        }
     }
 }
 support_jar.description = "Copies the android support libs to the Plugin directory"
-support_jar.dependsOn 'copy_plugin_source'
-
 support_jar.ext.remoteTaskPhase = 'prebuild'
 
